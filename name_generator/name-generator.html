@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medieval European Name Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Leaflet CSS for Future Enhancements (Optional) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-sA+eCHLxXmkIrnD0CA9ApoJ0QYhcFkGJcD3I3v5bNm0="
+          crossorigin=""/>
+    <style>
+        /* Root Variables for Theming */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #8e44ad;
+            --accent-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --text-color: #2c3e50;
+            --button-bg: #3498db;
+            --button-text: #fff;
+            --border-color: #bdc3c7;
+        }
+
+        body.dark-mode {
+            --primary-color: #ecf0f1;
+            --secondary-color: #9b59b6;
+            --accent-color: #e74c3c;
+            --background-color: #2c3e50;
+            --text-color: #ecf0f1;
+            --button-bg: #2980b9;
+            --button-text: #fff;
+            --border-color: #34495e;
+        }
+
+        /* General Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px 30px;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        body.dark-mode .container {
+            background-color: #34495e;
+        }
+
+        /* Header */
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: var(--primary-color);
+        }
+
+        /* Dark Mode Toggle */
+        .toggle-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-container input {
+            margin-right: 10px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section h2 {
+            margin-bottom: 10px;
+            font-size: 1.4em;
+            color: var(--secondary-color);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .checkbox-group, .theme-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .checkbox-item, .theme-item {
+            width: 45%;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        /* Sliders */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            min-width: 150px;
+        }
+
+        button:hover {
+            background-color: darken(var(--button-bg), 10%);
+        }
+
+        /* Results Section */
+        #results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            min-height: 100px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        body.dark-mode #results {
+            background-color: #2c3e50;
+            border-color: #34495e;
+        }
+
+        #results ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+
+        #results li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Export Buttons */
+        .export-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        body.dark-mode .search-bar input {
+            background-color: #34495e;
+            color: #ecf0f1;
+            border-color: #7f8c8d;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .checkbox-item, .theme-item {
+                width: 100%;
+            }
+
+            button {
+                min-width: 100%;
+            }
+
+            .export-buttons button {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Medieval European Name Generator</h1>
+        <div class="toggle-container">
+            <input type="checkbox" id="toggleDarkMode" aria-label="Toggle Dark Mode">
+            <label for="toggleDarkMode">Dark Mode</label>
+        </div>
+        <form id="nameForm">
+            <!-- Search Bar -->
+            <div class="form-section search-bar">
+                <input type="text" id="search" placeholder="Search generated names..." aria-label="Search Names">
+            </div>
+
+            <!-- First Name Culture Selection -->
+            <div class="form-section">
+                <h2>First Name Cultures</h2>
+                <div class="checkbox-group" role="group" aria-label="Select Cultures for First Names">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_english_first" name="cultures_first" value="english">
+                        <label for="culture_english_first">English</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_french_first" name="cultures_first" value="french">
+                        <label for="culture_french_first">French</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_german_first" name="cultures_first" value="german">
+                        <label for="culture_german_first">German</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_italian_first" name="cultures_first" value="italian">
+                        <label for="culture_italian_first">Italian</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_spanish_first" name="cultures_first" value="spanish">
+                        <label for="culture_spanish_first">Spanish</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_norse_first" name="cultures_first" value="norse">
+                        <label for="culture_norse_first">Norse</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_greek_first" name="cultures_first" value="greek">
+                        <label for="culture_greek_first">Greek</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_celtic_first" name="cultures_first" value="celtic">
+                        <label for="culture_celtic_first">Celtic</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last Name Culture Selection -->
+            <div class="form-section">
+                <h2>Last Name Cultures</h2>
+                <div class="checkbox-group" role="group" aria-label="Select Cultures for Last Names">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_english_last" name="cultures_last" value="english">
+                        <label for="culture_english_last">English</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_french_last" name="cultures_last" value="french">
+                        <label for="culture_french_last">French</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_german_last" name="cultures_last" value="german">
+                        <label for="culture_german_last">German</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_italian_last" name="cultures_last" value="italian">
+                        <label for="culture_italian_last">Italian</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_spanish_last" name="cultures_last" value="spanish">
+                        <label for="culture_spanish_last">Spanish</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_norse_last" name="cultures_last" value="norse">
+                        <label for="culture_norse_last">Norse</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_greek_last" name="cultures_last" value="greek">
+                        <label for="culture_greek_last">Greek</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="culture_celtic_last" name="cultures_last" value="celtic">
+                        <label for="culture_celtic_last">Celtic</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Themes Selection -->
+            <div class="form-section">
+                <h2>Themes</h2>
+                <div class="theme-group" role="group" aria-label="Select Themes">
+                    <div class="theme-item">
+                        <input type="checkbox" id="theme_noble" name="themes" value="noble">
+                        <label for="theme_noble">Noble</label>
+                    </div>
+                    <div class="theme-item">
+                        <input type="checkbox" id="theme_warrior" name="themes" value="warrior">
+                        <label for="theme_warrior">Warrior</label>
+                    </div>
+                    <div class="theme-item">
+                        <input type="checkbox" id="theme_merchant" name="themes" value="merchant">
+                        <label for="theme_merchant">Merchant</label>
+                    </div>
+                    <div class="theme-item">
+                        <input type="checkbox" id="theme_scholar" name="themes" value="scholar">
+                        <label for="theme_scholar">Scholar</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pronunciation and Syllable Filter -->
+            <div class="form-section">
+                <h2>Pronunciation</h2>
+                <label for="syllables">Maximum Syllables per Name:</label>
+                <div class="slider-container">
+                    <input type="range" id="syllables" name="syllables" min="1" max="5" value="3" aria-label="Maximum Syllables">
+                    <span class="slider-value" id="syllablesValue">3</span>
+                </div>
+            </div>
+
+            <!-- Gender Selection -->
+            <div class="form-section">
+                <label for="gender">Select Gender:</label>
+                <select id="gender" aria-label="Select Gender">
+                    <option value="any">Any</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <!-- Mode Selection -->
+            <div class="form-section">
+                <label for="mode">Select Mode:</label>
+                <select id="mode" aria-label="Select Mode">
+                    <option value="modern">Modern</option>
+                    <option value="medieval">Medieval</option>
+                    <option value="mostPronounceable">Most Pronounceable</option>
+                </select>
+            </div>
+
+            <!-- Number of Names -->
+            <div class="form-section">
+                <label for="quantity">Number of Names:</label>
+                <div class="slider-container">
+                    <input type="range" id="quantity" name="quantity" min="1" max="100" value="10" aria-label="Number of Names">
+                    <span class="slider-value" id="quantityValue">10</span>
+                </div>
+            </div>
+
+            <!-- Custom Prefix/Suffix -->
+            <div class="form-section">
+                <h2>Custom Name Components</h2>
+                <label for="customPrefix">Add Prefix:</label>
+                <input type="text" id="customPrefix" placeholder="e.g., Sir, Lady, Lord" aria-label="Add Prefix">
+
+                <label for="customSuffix">Add Suffix:</label>
+                <input type="text" id="customSuffix" placeholder="e.g., the Bold, the Brave" aria-label="Add Suffix">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="buttons">
+                <button type="button" id="generateBtn">Generate Names</button>
+                <button type="button" id="clearBtn">Clear Names</button>
+            </div>
+        </form>
+
+        <!-- Export Buttons -->
+        <div class="export-buttons">
+            <button type="button" id="copyBtn">Copy Names</button>
+            <button type="button" id="downloadBtn">Download as CSV</button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" aria-live="polite">
+            <p>No names generated yet. Please use the form above to generate names.</p>
+        </div>
+
+        <script>
+            // Name data structure containing first and last names for each European culture and gender
+            const nameData = {
+                english: {
+                    male: {
+                        modern: ["John", "William", "Henry", "Edward", "Richard", "Thomas", "Robert", "James", "Geoffrey", "Edmund"],
+                        medieval: ["John", "William", "Henry", "Edward", "Richard", "Thomas", "Robert", "James", "Geoffrey", "Edmund"],
+                        mostPronounceable: ["John", "William", "Henry", "Edward", "Richard", "Thomas", "Robert", "James", "Geoffrey", "Edmund"]
+                    },
+                    female: {
+                        modern: ["Mary", "Elizabeth", "Margaret", "Alice", "Catherine", "Anne", "Joan", "Isabella", "Eleanor", "Matilda"],
+                        medieval: ["Mary", "Elizabeth", "Margaret", "Alice", "Katherine", "Anne", "Joan", "Isabella", "Eleanor", "Mathilde"],
+                        mostPronounceable: ["Mary", "Elizabeth", "Margaret", "Alice", "Katherine", "Anne", "Joan", "Isabella", "Eleanor", "Matilda"]
+                    },
+                    last: ["Smith", "Taylor", "Brown", "Walker", "Wright", "Turner", "Clarke", "Cooper", "Carter", "Miller"]
+                },
+                french: {
+                    male: {
+                        modern: ["Jean", "Pierre", "Louis", "Henri", "Charles", "Philippe", "Guillaume", "Jacques", "Robert", "Hugues"],
+                        medieval: ["Jean", "Pierre", "Louis", "Henri", "Charles", "Philippe", "Guillaume", "Jacques", "Robert", "Hugues"],
+                        mostPronounceable: ["Jean", "Pierre", "Louis", "Henry", "Charles", "Philip", "William", "Jacques", "Robert", "Hugh"]
+                    },
+                    female: {
+                        modern: ["Marie", "Isabelle", "Catherine", "Anne", "Marguerite", "Jeanne", "Agnes", "Alice", "Beatrice", "Matilde"],
+                        medieval: ["Marie", "Isabelle", "Catherine", "Anne", "Marguerite", "Jeanne", "Agnes", "Alice", "Beatrice", "Mathilde"],
+                        mostPronounceable: ["Marie", "Isabel", "Catherine", "Anne", "Margaret", "Jane", "Agnes", "Alice", "Beatrice", "Matilda"]
+                    },
+                    last: ["Dupont", "Moreau", "Leroy", "Simon", "Laurent", "Lefebvre", "Martin", "Bernard", "Dubois", "Robert"]
+                },
+                german: {
+                    male: {
+                        modern: ["Hans", "Karl", "Heinrich", "Friedrich", "Wilhelm", "Gerhard", "Johann", "Dietrich", "Heinrich", "Otto"],
+                        medieval: ["Hans", "Karl", "Heinrich", "Friedrich", "Wilhelm", "Gerhard", "Johann", "Dietrich", "Heinrich", "Otto"],
+                        mostPronounceable: ["Hans", "Karl", "Henry", "Friedrich", "William", "Gerhard", "John", "Dietrich", "Henry", "Otto"]
+                    },
+                    female: {
+                        modern: ["Anna", "Maria", "Elisabeth", "Margarete", "Gertrud", "Helga", "Ingrid", "Hildegard", "Sabine", "Ursula"],
+                        medieval: ["Anna", "Maria", "Elisabeth", "Margarete", "Gertrud", "Helga", "Ingrid", "Hildegard", "Sabine", "Ursula"],
+                        mostPronounceable: ["Anna", "Maria", "Elizabeth", "Margaret", "Gertrud", "Helga", "Ingrid", "Hildegard", "Sabine", "Ursula"]
+                    },
+                    last: ["Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Hoffmann", "Schäfer"]
+                },
+                italian: {
+                    male: {
+                        modern: ["Giovanni", "Lorenzo", "Matteo", "Francesco", "Alessandro", "Giuseppe", "Andrea", "Davide", "Marco", "Nicola"],
+                        medieval: ["Giovanni", "Lorenzo", "Matteo", "Francesco", "Alessandro", "Giuseppe", "Andrea", "Davide", "Marco", "Nicola"],
+                        mostPronounceable: ["Giovanni", "Lorenzo", "Matteo", "Francesco", "Alexander", "Joseph", "Andrew", "David", "Mark", "Nicholas"]
+                    },
+                    female: {
+                        modern: ["Maria", "Giulia", "Sofia", "Martina", "Federica", "Chiara", "Alessia", "Francesca", "Laura", "Elisa"],
+                        medieval: ["Maria", "Giulia", "Sofia", "Martina", "Federica", "Chiara", "Alessia", "Francesca", "Laura", "Elisa"],
+                        mostPronounceable: ["Maria", "Julia", "Sophia", "Martina", "Federica", "Clara", "Alexandra", "Francesca", "Laura", "Elisa"]
+                    },
+                    last: ["Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco"]
+                },
+                spanish: {
+                    male: {
+                        modern: ["Juan", "Carlos", "Jorge", "Luis", "Miguel", "Pedro", "Jose", "Manuel", "Antonio", "Francisco"],
+                        medieval: ["Juan", "Carlos", "Jorge", "Luis", "Miguel", "Pedro", "Jose", "Manuel", "Antonio", "Francisco"],
+                        mostPronounceable: ["Juan", "Carlos", "George", "Louis", "Michael", "Peter", "Joseph", "Manuel", "Anthony", "Francis"]
+                    },
+                    female: {
+                        modern: ["Maria", "Carmen", "Josefa", "Isabella", "Lucia", "Ana", "Elena", "Sara", "Patricia", "Laura"],
+                        medieval: ["Maria", "Carmen", "Josefa", "Isabella", "Lucia", "Ana", "Elena", "Sara", "Patricia", "Laura"],
+                        mostPronounceable: ["Maria", "Carmen", "Josephine", "Isabella", "Lucy", "Anna", "Elena", "Sara", "Patricia", "Laura"]
+                    },
+                    last: ["García", "Martínez", "Rodríguez", "López", "González", "Pérez", "Sánchez", "Ramírez", "Cruz", "Morales"]
+                },
+                norse: {
+                    male: {
+                        modern: ["Erik", "Lars", "Nils", "Bjorn", "Gunnar", "Sven", "Thor", "Leif", "Odin", "Harald"],
+                        medieval: ["Erik", "Lars", "Nils", "Bjorn", "Gunnar", "Sven", "Thor", "Leif", "Odin", "Harald"],
+                        mostPronounceable: ["Erik", "Lars", "Nils", "Bjorn", "Gunnar", "Sven", "Thor", "Leif", "Odin", "Harald"]
+                    },
+                    female: {
+                        modern: ["Astrid", "Ingrid", "Sigrid", "Freya", "Helga", "Signe", "Liv", "Karen", "Ragnhild", "Solveig"],
+                        medieval: ["Astrid", "Ingrid", "Sigrid", "Freya", "Helga", "Signe", "Liv", "Karen", "Ragnhild", "Solveig"],
+                        mostPronounceable: ["Astrid", "Ingrid", "Sigrid", "Freya", "Helga", "Signe", "Liv", "Karen", "Ragnhild", "Solveig"]
+                    },
+                    last: ["Andersen", "Johansson", "Nilsson", "Eriksson", "Larsson", "Olsson", "Persson", "Svensson", "Gustafsson", "Olofsson"]
+                },
+                greek: {
+                    male: {
+                        modern: ["Dimitri", "Nikos", "Yannis", "Kostas", "Petros", "Giorgos", "Vasilis", "Christos", "Stavros", "Michalis"],
+                        medieval: ["Dimitri", "Nikos", "Yannis", "Kostas", "Petros", "Giorgos", "Vasilis", "Christos", "Stavros", "Michalis"],
+                        mostPronounceable: ["Dimitri", "Nikos", "Yannis", "Costas", "Peter", "George", "Basil", "Chris", "Stavros", "Michael"]
+                    },
+                    female: {
+                        modern: ["Eleni", "Maria", "Vasiliki", "Katerina", "Georgia", "Sofia", "Ioanna", "Daphne", "Nadia", "Alexandra"],
+                        medieval: ["Eleni", "Maria", "Vasiliki", "Katerina", "Georgia", "Sofia", "Ioanna", "Daphne", "Nadia", "Alexandra"],
+                        mostPronounceable: ["Eleni", "Maria", "Vasiliki", "Catherine", "Georgia", "Sophia", "Joanna", "Daphne", "Nadia", "Alexandra"]
+                    },
+                    last: ["Papadopoulos", "Nikolaidis", "Christodoulou", "Georgiou", "Stavropoulos", "Michalopoulos", "Ioannidis", "Kostopoulos", "Vasilakis", "Petropoulos"]
+                },
+                celtic: {
+                    male: {
+                        modern: ["Aidan", "Brendan", "Connor", "Declan", "Finn", "Liam", "Patrick", "Ronan", "Sean", "Tara"],
+                        medieval: ["Aidan", "Brendan", "Connor", "Declan", "Finn", "Liam", "Patrick", "Ronan", "Sean", "Tara"],
+                        mostPronounceable: ["Aidan", "Brendan", "Connor", "Declan", "Finn", "Liam", "Patrick", "Ronan", "Sean", "Tara"]
+                    },
+                    female: {
+                        modern: ["Aoife", "Brigid", "Caoimhe", "Deirdre", "Fiona", "Maeve", "Niamh", "Orla", "Siobhan", "Sinead"],
+                        medieval: ["Aoife", "Brigid", "Caoimhe", "Deirdre", "Fiona", "Maeve", "Niamh", "Orla", "Siobhan", "Sinead"],
+                        mostPronounceable: ["Aoife", "Brigid", "Kweeva", "Deirdre", "Fiona", "Maeve", "Niamh", "Orla", "Shivawn", "Sheena"]
+                    },
+                    last: ["O'Connor", "O'Neill", "O'Brien", "O'Leary", "O'Sullivan", "O'Reilly", "O'Malley", "O'Donnell", "O'Connor", "O'Grady"]
+                }
+            };
+
+            // Elements
+            const quantitySlider = document.getElementById('quantity');
+            const quantityValue = document.getElementById('quantityValue');
+            const syllablesSlider = document.getElementById('syllables');
+            const syllablesValue = document.getElementById('syllablesValue');
+            const generateBtn = document.getElementById('generateBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const searchInput = document.getElementById('search');
+            const toggleDarkMode = document.getElementById('toggleDarkMode');
+            const resultsDiv = document.getElementById('results');
+            const customPrefixInput = document.getElementById('customPrefix');
+            const customSuffixInput = document.getElementById('customSuffix');
+
+            // Initialize slider value displays
+            quantityValue.textContent = quantitySlider.value;
+            syllablesValue.textContent = syllablesSlider.value;
+
+            // Update slider values on input
+            quantitySlider.addEventListener('input', () => {
+                quantityValue.textContent = quantitySlider.value;
+            });
+
+            syllablesSlider.addEventListener('input', () => {
+                syllablesValue.textContent = syllablesSlider.value;
+            });
+
+            // Function to count syllables in a word (simple heuristic)
+            function countSyllables(word) {
+                word = word.toLowerCase();
+                if(word.length <= 3) { return 1; }
+                word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+                word = word.replace(/^y/, '');
+                const syllableMatches = word.match(/[aeiouy]{1,2}/g);
+                return syllableMatches ? syllableMatches.length : 1;
+            }
+
+            // Function to get meaning of a name (placeholder implementation)
+            function getNameMeaning(culture, gender, mode, name) {
+                // Predefined meanings (can be expanded)
+                const predefinedMeanings = {
+                    "john": "God is gracious",
+                    "mary": "Bitter",
+                    "louis": "Famous warrior",
+                    "isabella": "Devoted to God",
+                    "erik": "Eternal ruler",
+                    "elena": "Bright, shining light",
+                    "juan": "God is gracious",
+                    "anna": "Grace",
+                    // Add more as needed
+                };
+                const lowerName = name.toLowerCase();
+                return predefinedMeanings[lowerName] || "No meaning available";
+            }
+
+            // Function to get pronunciation audio using Web Speech API
+            function getPronunciationAudio(name) {
+                const synth = window.speechSynthesis;
+                const utterThis = new SpeechSynthesisUtterance(name);
+                synth.speak(utterThis);
+            }
+
+            // Function to generate names
+            function generateNames() {
+                // Get selected cultures
+                const selectedCulturesFirst = Array.from(document.querySelectorAll('input[name="cultures_first"]:checked')).map(cb => cb.value);
+                const selectedCulturesLast = Array.from(document.querySelectorAll('input[name="cultures_last"]:checked')).map(cb => cb.value);
+
+                // Get selected themes
+                const selectedThemes = Array.from(document.querySelectorAll('input[name="themes"]:checked')).map(cb => cb.value);
+
+                // Get other settings
+                const gender = document.getElementById('gender').value;
+                const mode = document.getElementById('mode').value;
+                const syllableLimit = parseInt(syllablesSlider.value, 10);
+                const quantity = parseInt(quantitySlider.value, 10);
+                const customPrefix = customPrefixInput.value.trim();
+                const customSuffix = customSuffixInput.value.trim();
+
+                // Clear previous results
+                resultsDiv.innerHTML = '';
+
+                // Validate selections
+                if (selectedCulturesFirst.length === 0 && selectedCulturesLast.length === 0) {
+                    resultsDiv.innerHTML = '<p>Please select at least one culture for first or last names.</p>';
+                    return;
+                }
+
+                // Aggregate first names
+                let aggregatedFirstNames = [];
+                selectedCulturesFirst.forEach(culture => {
+                    if (nameData[culture]) {
+                        if (gender === 'male' || gender === 'any') {
+                            aggregatedFirstNames = aggregatedFirstNames.concat(nameData[culture].male[mode]);
+                        }
+                        if (gender === 'female' || gender === 'any') {
+                            aggregatedFirstNames = aggregatedFirstNames.concat(nameData[culture].female[mode]);
+                        }
+                    }
+                });
+
+                // Aggregate last names
+                let aggregatedLastNames = [];
+                selectedCulturesLast.forEach(culture => {
+                    if (nameData[culture]) {
+                        aggregatedLastNames = aggregatedLastNames.concat(nameData[culture].last);
+                    }
+                });
+
+                // Apply themes (modify names based on themes)
+                if (selectedThemes.length > 0) {
+                    selectedThemes.forEach(theme => {
+                        switch(theme) {
+                            case 'noble':
+                                // Example: Add noble titles
+                                aggregatedFirstNames = aggregatedFirstNames.map(name => `Sir ${name}`);
+                                aggregatedLastNames = aggregatedLastNames.map(name => `${name} of House`);
+                                break;
+                            case 'warrior':
+                                // Example: Add warrior-related suffixes
+                                aggregatedFirstNames = aggregatedFirstNames.map(name => `${name} the Brave`);
+                                aggregatedLastNames = aggregatedLastNames.map(name => `Steel ${name}`);
+                                break;
+                            case 'merchant':
+                                // Example: Add merchant-related prefixes
+                                aggregatedFirstNames = aggregatedFirstNames.map(name => `Merchant ${name}`);
+                                aggregatedLastNames = aggregatedLastNames.map(name => `${name} Trader`);
+                                break;
+                            case 'scholar':
+                                // Example: Add scholarly titles
+                                aggregatedFirstNames = aggregatedFirstNames.map(name => `Master ${name}`);
+                                aggregatedLastNames = aggregatedLastNames.map(name => `${name} the Wise`);
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+                }
+
+                // Remove duplicates
+                aggregatedFirstNames = [...new Set(aggregatedFirstNames)];
+                aggregatedLastNames = [...new Set(aggregatedLastNames)];
+
+                // Filter by syllable count
+                aggregatedFirstNames = aggregatedFirstNames.filter(name => countSyllables(name) <= syllableLimit);
+                aggregatedLastNames = aggregatedLastNames.filter(name => countSyllables(name) <= syllableLimit);
+
+                if (aggregatedFirstNames.length === 0 || aggregatedLastNames.length === 0) {
+                    resultsDiv.innerHTML = '<p>No names match the syllable criteria.</p>';
+                    return;
+                }
+
+                // Calculate total possible combinations
+                const totalCombinations = aggregatedFirstNames.length * aggregatedLastNames.length;
+                const finalQuantity = Math.min(quantity, totalCombinations);
+
+                // Generate unique names
+                const namesSet = new Set();
+                while (namesSet.size < finalQuantity) {
+                    const first = aggregatedFirstNames[Math.floor(Math.random() * aggregatedFirstNames.length)];
+                    const last = aggregatedLastNames[Math.floor(Math.random() * aggregatedLastNames.length)];
+                    let fullName = `${first} ${last}`;
+
+                    // Add custom prefix and suffix
+                    if (customPrefix) {
+                        fullName = `${customPrefix} ${fullName}`;
+                    }
+                    if (customSuffix) {
+                        fullName = `${fullName} ${customSuffix}`;
+                    }
+
+                    namesSet.add(fullName);
+                }
+
+                const namesList = Array.from(namesSet);
+                const ul = document.createElement('ul');
+
+                namesList.forEach(name => {
+                    const li = document.createElement('li');
+                    li.textContent = name;
+
+                    // Pronunciation Button
+                    const pronBtn = document.createElement('button');
+                    pronBtn.textContent = '🔊';
+                    pronBtn.classList.add('pronunciation-btn');
+                    pronBtn.setAttribute('aria-label', `Pronounce ${name}`);
+                    pronBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        getPronunciationAudio(name);
+                    });
+                    li.appendChild(pronBtn);
+
+                    ul.appendChild(li);
+                });
+
+                resultsDiv.appendChild(ul);
+            }
+
+            // Function to clear results
+            function clearNames() {
+                resultsDiv.innerHTML = '<p>No names generated yet. Please use the form above to generate names.</p>';
+                searchInput.value = '';
+            }
+
+            // Function to copy names to clipboard
+            function copyNames() {
+                const names = [];
+                resultsDiv.querySelectorAll('li').forEach(li => {
+                    names.push(li.firstChild.textContent);
+                });
+
+                if (names.length === 0) {
+                    alert('No names to copy.');
+                    return;
+                }
+
+                navigator.clipboard.writeText(names.join(', ')).then(() => {
+                    alert('Names copied to clipboard!');
+                }).catch(err => {
+                    alert('Failed to copy names.');
+                });
+            }
+
+            // Function to download names as CSV
+            function downloadCSV() {
+                const names = [];
+                resultsDiv.querySelectorAll('li').forEach(li => {
+                    names.push(li.firstChild.textContent);
+                });
+
+                if (names.length === 0) {
+                    alert('No names to download.');
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,";
+                names.forEach(name => {
+                    csvContent += `"${name}"\n`;
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
+                link.setAttribute("download", `medieval_european_names_${timestamp}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // Function to handle dark mode toggle
+            toggleDarkMode.addEventListener('change', () => {
+                document.body.classList.toggle('dark-mode');
+            });
+
+            // Event Listeners
+            generateBtn.addEventListener('click', generateNames);
+            clearBtn.addEventListener('click', clearNames);
+            copyBtn.addEventListener('click', copyNames);
+            downloadBtn.addEventListener('click', downloadCSV);
+
+            // Implementing Search Functionality
+            searchInput.addEventListener('input', () => {
+                const filter = searchInput.value.toLowerCase();
+                const ul = resultsDiv.querySelector('ul');
+                if (!ul) return;
+                const lis = ul.querySelectorAll('li');
+                lis.forEach(li => {
+                    const text = li.textContent.toLowerCase();
+                    if (text.includes(filter)) {
+                        li.style.display = 'flex';
+                    } else {
+                        li.style.display = 'none';
+                    }
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>
