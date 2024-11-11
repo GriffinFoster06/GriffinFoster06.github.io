@@ -14,4 +14,4 @@ This name generator generates random names based on certain criteria. It’s bui
 
 You can use the name generator directly below.
 
-<iframe src="/name-generator/name-generator.html" width="100%" height="500px"></iframe>
+<iframe src="/name_generator/index.html" width="100%" height="500px"></iframe>
