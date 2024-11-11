@@ -13,7 +13,7 @@ title: "Your Name - Portfolio"
 
 ## My Projects
 
-- [**Name Generator**](/_projects/name-generator/index.html)
+- [**Name Generator**](/projects/name-generator/index.html)
   - A simple HTML-based name generator that creates random names.
 
 <!-- Add more projects here -->
